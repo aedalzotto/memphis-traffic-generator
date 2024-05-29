@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 from os import getenv
 from .generator import Generator
+from .builder import Builder
 
 ENV_MEMPHIS_V_PATH = "MEMPHIS_V_PATH"
 
@@ -13,7 +14,11 @@ def memphis_tg():
     gen_parser.add_argument("OUTPUT_PATH", help="Path to base folder output")
     gen_parser.add_argument("MAL_MSG_SIZE", help="Size of the malicious message")
     
-    # build
+    build_parser = subparsers.add_parser("build", help="Generate testcase and scenarios")
+    build_parser.add_argument("TESTCASE", help="Testcase file")
+    build_parser.add_argument("APPLICATIONS", help="Applications file")
+    build_parser.add_argument("SCENARIOS", help="Scenarios folder")
+
     # simulate
     # extract
 
@@ -24,3 +29,6 @@ def memphis_tg():
             raise ValueError("Environment variable {} not set".format(ENV_MEMPHIS_V_PATH))
         generator = Generator(MEMPHIS_V_PATH, args.APPLICATION, args.MAL_MSG_SIZE)
         generator.write(args.OUTPUT_PATH)
+    elif args.option == "build":
+        builder = Builder(args.TESTCASE, args.APPLICATIONS, args.SCENARIOS)
+        builder.build()
