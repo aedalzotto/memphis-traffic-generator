@@ -2,6 +2,7 @@ from argparse import ArgumentParser
 from os import getenv
 from .generator import Generator
 from .builder import Builder
+from .simulator import Simulator
 
 ENV_MEMPHIS_V_PATH = "MEMPHIS_V_PATH"
 
@@ -19,7 +20,11 @@ def memphis_tg():
     build_parser.add_argument("APPLICATIONS", help="Applications file")
     build_parser.add_argument("SCENARIOS", help="Scenarios folder")
 
-    # simulate
+    sim_parser = subparsers.add_parser("simulate", help="Generate testcase and scenarios")
+    sim_parser.add_argument("TESTCASE", help="Testcase path")
+    sim_parser.add_argument("-l", "--lower", help="Lower bound", default=None)
+    sim_parser.add_argument("-u", "--upper", help="Upper bound", default=None)
+
     # extract
 
     args = parser.parse_args()
@@ -32,3 +37,6 @@ def memphis_tg():
     elif args.option == "build":
         builder = Builder(args.TESTCASE, args.APPLICATIONS, args.SCENARIOS)
         builder.build()
+    elif args.option == "simulate":
+        simulator = Simulator(args.TESTCASE, args.lower, args.upper)
+        simulator.simulate()
