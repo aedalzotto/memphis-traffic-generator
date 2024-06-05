@@ -21,6 +21,8 @@ class Extractor:
         df.drop(["app"], axis=1, inplace=True)
         mapping = Mapping(scenario)
         df["hops"] = [Mapping.distance(mapping[df.loc[i, "prod"]], mapping[df.loc[i, "cons"]]) for i in df.index]
+        df.loc[0, "rel_timestamp"] = 0
+        df.loc[1:, "rel_timestamp"] = df.loc[1:, "timestamp"] - df.loc[0, "timestamp"]
         return df
 
     def extract(self, output):
