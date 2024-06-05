@@ -29,6 +29,8 @@ def memphis_tg():
     ext_parser = subparsers.add_parser("extract", help="Extract dataset from simulations")
     ext_parser.add_argument("TESTCASE", help="Testcase path")
     ext_parser.add_argument("-o", "--output", help="Output file", default=None)
+    ext_parser.add_argument("-l", "--lower",  help="Lower bound", default=None)
+    ext_parser.add_argument("-u", "--upper",  help="Upper bound", default=None)
 
     args = parser.parse_args()
     if args.option == "generate":
@@ -44,7 +46,7 @@ def memphis_tg():
         simulator = Simulator(args.TESTCASE, args.lower, args.upper)
         simulator.simulate()
     elif args.option == "extract":
-        extractor = Extractor(args.TESTCASE)
-        extractor.write(args.output)
+        extractor = Extractor(args.TESTCASE, args.lower, args.upper)
+        extractor.extract(args.output)
     else:
         parser.print_usage()
