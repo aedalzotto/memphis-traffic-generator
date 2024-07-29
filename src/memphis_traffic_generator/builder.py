@@ -1,6 +1,7 @@
 from subprocess import run, DEVNULL
 from os import listdir
 from tqdm import tqdm
+from yaspin import yaspin
 from joblib import Parallel, delayed
 
 class Builder:
@@ -11,15 +12,17 @@ class Builder:
         self.scenarios = ["{}/{}".format(scenarios, scenario) for scenario in listdir(scenarios)]
 
     def build(self):
-        print("Building testcase...")
-        with open("{}.log".format(self.name), "w") as log:
-            if run(["memphi5", "testcase", self.testcase], stdout=log).returncode != 0:
-                raise Exception("Error building testcase. Check log for more information.")
+        with yaspin(text="Building testcase...") as spinner:
+            with open("{}.log".format(self.name), "w") as log:
+                if run(["memphi5", "testcase", self.testcase], stdout=log).returncode != 0:
+                    raise Exception("Error building testcase. Check log for more information.")
+            spinner.ok()
     
-        print("Building applications...")
-        with open("{}.log".format(self.name), "a") as log:
-            if run(["memphi5", "applications", self.testcase[:-5], self.apps], stdout=log).returncode != 0:
-                raise Exception("Error building applications. Check log for more information.")
+        with yaspin(text="Building applications...") as spinner:
+            with open("{}.log".format(self.name), "a") as log:
+                if run(["memphi5", "applications", self.testcase[:-5], self.apps], stdout=log).returncode != 0:
+                    raise Exception("Error building applications. Check log for more information.")
+            spinner.ok()
 
         print("Building scenarios...")
         Parallel(n_jobs=-1)(delayed(Builder.__build_scenario)(self.testcase[:-5], scenario) for scenario in tqdm(self.scenarios))
