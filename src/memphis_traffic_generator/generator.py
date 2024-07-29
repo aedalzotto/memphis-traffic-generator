@@ -35,7 +35,7 @@ class Generator:
         # Not worth parallelizing scenarios. Already tried that.
         makedirs("{}/{}_{}".format(out_path, self.app.name, self.app.mal_msg_size), exist_ok=True)
         print("Generating scenarios...")
-        for i, pair in tqdm(enumerate(self.scenarios)):
+        for i, pair in enumerate(tqdm(self.scenarios)):
             self.__write_scenario(i, pair, out_path)
 
     def __write_scenario(self, i, pair, out_path):
