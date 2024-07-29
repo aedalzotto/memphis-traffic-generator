@@ -7,6 +7,7 @@ name = "memphis-traffic-generator"
 version = "0.0.1"
 dependencies = [
     'tqdm',
+    'yaspin',
     'joblib',
     'memphis-traffic-analyzer',
     'importlib-metadata; python_version>="3.8"',
