@@ -11,10 +11,14 @@ def memphis_tg():
     parser = ArgumentParser(description="Memphis Traffic Generator")
     subparsers = parser.add_subparsers(dest="option")
 
-    gen_parser = subparsers.add_parser("generate", help="Generate testcase and scenarios")
-    gen_parser.add_argument("APPLICATION", help="Application name to generate")
-    gen_parser.add_argument("-o", "--output", help="Path to output base folder", default=".")
-    gen_parser.add_argument("-m", "--msize", help="Size of the malicious message", default="96")
+    gen_app_parser = subparsers.add_parser("generate-app", help="Generate testcase and scenarios for app-based anomaly")
+    gen_app_parser.add_argument("APPLICATION", help="Application name to generate")
+    gen_app_parser.add_argument("-o", "--output", help="Path to output base folder", default=".")
+    gen_app_parser.add_argument("-m", "--msize", help="Size of the malicious message", default="96")
+
+    gen_ht_parser = subparsers.add_parser("generate-ht", help="Generate testcases and scenarios for HT-based anomaly")
+    gen_ht_parser.add_argument("APPLICATION", help="Application name to generate")
+    gen_ht_parser.add_argument("-o", "--output", help="Path to output base folder", default=".")
     
     build_parser = subparsers.add_parser("build", help="Generate testcase and scenarios")
     build_parser.add_argument("TESTCASE", help="Testcase file")
@@ -33,11 +37,16 @@ def memphis_tg():
     ext_parser.add_argument("-u", "--upper",  help="Upper bound", default=None)
 
     args = parser.parse_args()
-    if args.option == "generate":
+    if args.option == "generate-app" or args.option == "generate-ht":
         MEMPHIS_V_PATH = getenv(ENV_MEMPHIS_V_PATH)
         if MEMPHIS_V_PATH is None:
             raise ValueError("Environment variable {} not set".format(ENV_MEMPHIS_V_PATH))
-        generator = Generator(MEMPHIS_V_PATH, args.APPLICATION, args.msize)
+
+        if args.option == "generate-app":
+            generator = Generator(MEMPHIS_V_PATH, args.APPLICATION, mal_msg_size=args.msize)
+        else:
+            generator = Generator(MEMPHIS_V_PATH, args.APPLICATION, trojan=True)
+
         generator.write(args.output)
     elif args.option == "build":
         builder = Builder(args.TESTCASE, args.APPLICATIONS, args.SCENARIOS)

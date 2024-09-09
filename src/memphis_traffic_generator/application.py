@@ -2,7 +2,7 @@ from os import listdir
 from .descriptor import Descriptor
 
 class Application(Descriptor):
-    def __init__(self, path, name, mal_msg_size):
+    def __init__(self, path, name, trojan=False, mal_msg_size=None):
         self._name = name
         self._mal_msg_size = mal_msg_size
 
@@ -15,10 +15,11 @@ class Application(Descriptor):
         super().__init__()
         self._content += "apps:\n"
         self._content += "  - name: {}\n".format(name)
-        self._content += "  - name: malicious_rand\n"
-        self._content += "    instance: std_{}\n".format(mal_msg_size)
-        self._content += "    definitions:\n"
-        self._content += "      - MAL_MSG_SIZE: {}\n".format(mal_msg_size)
+        if not trojan:
+            self._content += "  - name: malicious_rand\n"
+            self._content += "    instance: std_{}\n".format(mal_msg_size)
+            self._content += "    definitions:\n"
+            self._content += "      - MAL_MSG_SIZE: {}\n".format(mal_msg_size)
 
     @property
     def name(self):

@@ -1,5 +1,5 @@
 class Slots:
-    def __init__(self, x, y, rem_top_diag=False):
+    def __init__(self, x, y, rem_top_diag=False, ht=False):
         self._x = x
         self._y = y
 
@@ -12,8 +12,9 @@ class Slots:
         else:
             self.slots.remove(x*(y-1)) # Remove mapper
         
-        self.slots.remove(0)       # Remove prod
-        self.slots.remove(x*y - 1) # Remove cons
+        if not ht:
+            self.slots.remove(0)       # Remove prod
+            self.slots.remove(x*y - 1) # Remove cons
 
     def __len__(self):
         return len(self.slots)
