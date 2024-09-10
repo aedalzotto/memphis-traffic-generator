@@ -30,11 +30,18 @@ def memphis_tg():
     sim_parser.add_argument("-l", "--lower", help="Lower bound", default=None)
     sim_parser.add_argument("-u", "--upper", help="Upper bound", default=None)
 
-    ext_parser = subparsers.add_parser("extract", help="Extract dataset from simulations")
-    ext_parser.add_argument("TESTCASE", help="Testcase path")
-    ext_parser.add_argument("-o", "--output", help="Output file", default=None)
-    ext_parser.add_argument("-l", "--lower",  help="Lower bound", default=None)
-    ext_parser.add_argument("-u", "--upper",  help="Upper bound", default=None)
+    ext_app_parser = subparsers.add_parser("extract-app", help="Extract dataset from app-based anomaly simulations")
+    ext_app_parser.add_argument("TESTCASE", help="Testcase path")
+    ext_app_parser.add_argument("-o", "--output", help="Output file", default=None)
+    ext_app_parser.add_argument("-l", "--lower",  help="Lower bound", default=None)
+    ext_app_parser.add_argument("-u", "--upper",  help="Upper bound", default=None)
+
+    ext_ht_parser = subparsers.add_parser("extract-ht", help="Extract dataset from HT-based anomaly simulations")
+    ext_ht_parser.add_argument("TESTCASE", help="Normal testcase path")
+    ext_ht_parser.add_argument("TESTCASE_M", help="Anomalous testcase path")
+    ext_ht_parser.add_argument("-o", "--output", help="Output file", default=None)
+    ext_ht_parser.add_argument("-l", "--lower",  help="Lower bound", default=None)
+    ext_ht_parser.add_argument("-u", "--upper",  help="Upper bound", default=None)
 
     args = parser.parse_args()
     if args.option == "generate-app" or args.option == "generate-ht":
@@ -54,8 +61,11 @@ def memphis_tg():
     elif args.option == "simulate":
         simulator = Simulator(args.TESTCASE, args.lower, args.upper)
         simulator.simulate()
-    elif args.option == "extract":
+    elif args.option == "extract-app":
         extractor = Extractor(args.TESTCASE, args.lower, args.upper)
+        extractor.extract(args.output)
+    elif args.option == "extract-ht":
+        extractor = Extractor(args.TESTCASE, args.lower, args.upper, args.TESTCASE_M)
         extractor.extract(args.output)
     else:
         parser.print_usage()
