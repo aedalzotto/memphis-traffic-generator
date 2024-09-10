@@ -15,12 +15,13 @@ class Extractor:
             self.scenarios_m = get_scenarios(testcase_m, lower_bound, upper_bound)
 
     def __get_dmni(scenario):
+        malicious_tc = scenario.split("/")[-2].endswith("_m")
         df = DMNI(scenario).df
-        malicious = scenario.endswith("_m") or scenario.split("/")[-2].endswith("_m")
+        malicious_sc = scenario.endswith("_m")
         df["scenario"]  = scenario.split("/")[-1].split("_")[1]
-        df["malicious"] = malicious
+        df["malicious"] = malicious_sc or malicious_tc
         df.drop(df[df["app"] == 0].index, inplace=True)
-        if malicious:
+        if malicious_sc:
             df.drop(df[df["app"] == 1].index, inplace=True)
         df.drop(["app"], axis=1, inplace=True)
         mapping = Mapping(scenario, ["malicious_rand"])
