@@ -15,7 +15,8 @@ class Extractor:
             self.scenarios_m = get_scenarios(testcase_m, lower_bound, upper_bound)
 
     def __get_dmni(scenario):
-        malicious_tc = scenario.split("/")[-2].endswith("_m")
+        tc_name = scenario.split("/")[-2]
+        malicious_tc = tc_name.endswith("_m") or tc_name.endswith("_bad")
         df = DMNI(scenario).df
         malicious_sc = scenario.endswith("_m")
         df["scenario"]  = scenario.split("/")[-1].split("_")[1]
