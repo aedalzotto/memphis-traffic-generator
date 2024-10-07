@@ -4,8 +4,8 @@ from subprocess import run
 from .tools import get_scenarios
 
 class Simulator:
-    def __init__(self, testcase, lower_bound=None, upper_bound=None):
-        self.scenarios = get_scenarios(testcase, lower_bound, upper_bound)
+    def __init__(self, testcase, lower_bound=None, upper_bound=None, rtd_scens=None):
+        self.scenarios = get_scenarios(testcase, lower_bound, upper_bound, rtd_scens)
 
     def simulate(self):
         print("Simulating...")

@@ -7,14 +7,14 @@ from .testcase import Testcase
 from .scenario import Scenario
 
 class Generator:
-    def __init__(self, platform_path, app, trojan=False, oda=False, mal_msg_size=None):
+    def __init__(self, platform_path, app, trojan=False, oda=False, with_rtd=False, mal_msg_size=None):
         self._trojan = trojan
         self.app = Application(platform_path, app, trojan, mal_msg_size)
 
         overhead = (1 if trojan else 3) + (2 if oda else 0)
         slots = Slots(len(self.app) + overhead)
 
-        management = [(slots.x-1, slots.y-1)]
+        management = [("mapper_task", (slots.x-1, slots.y-1))]
         if oda:
             # map the observing task at center
             obs_map = (int(slots.x / 2), int(slots.y / 2))
@@ -29,8 +29,8 @@ class Generator:
             else:
                 dec_map = (obs_map[0] - 1, obs_map[1])
 
-            management.append(obs_map)
-            management.append(dec_map)
+            management.append(("safe-monitor", obs_map))
+            management.append(("safe-{}".format(app), dec_map))
 
         if not trojan:
             self.tc  = Testcase(slots)
@@ -40,19 +40,27 @@ class Generator:
                 Testcase(slots, management, mal=True)
             )
 
-        slots.remove(management)
+        for oda in management:
+            slots.remove(oda[1])
         mappings = [tuple(slots.to_xy(i) for i in m) for m in list(permutations(slots, len(self.app)))]
 
         if not trojan:
             self.scenarios = [
                 (
-                    Scenario(self.app, p, management, slots), 
-                    Scenario(self.app, p, management, slots, mal_msg_size)
+                    Scenario(self.app, p, [management[0]], slots), 
+                    Scenario(self.app, p, [management[0]], slots, mal_msg_size)
                 ) 
                 for p in mappings
             ]
         else:
             self.scenarios = [
+                Scenario(self.app, p, [management[0]], slots)
+                for p in mappings
+            ]
+
+        self.with_rtd = with_rtd
+        if with_rtd:
+            self.rtd_scenarios = [
                 Scenario(self.app, p, management, slots)
                 for p in mappings
             ]
@@ -82,6 +90,12 @@ class Generator:
             makedirs("{}/{}".format(out_path, self.app.name), exist_ok=True)
             for i, scenario in enumerate(tqdm(self.scenarios)):
                 scenario.write("{}/{}/sc_{}.yaml".format(out_path, self.app.name, i))
+        
+        if self.with_rtd:
+            print("Generating RTD scenarios...")
+            makedirs("{}/{}_rtd".format(out_path, self.app.name), exist_ok=True)
+            for i, scenario in enumerate(tqdm(self.rtd_scenarios)):
+                scenario.write("{}/{}_rtd/rtd_{}.yaml".format(out_path, self.app.name, i))
 
     def __write_scenario(self, i, pair, out_path):
         pair[0].write("{}/{}_{}/sc_{}.yaml".format(out_path, self.app.name, self.app.mal_msg_size, i))

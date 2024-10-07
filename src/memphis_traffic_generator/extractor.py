@@ -2,22 +2,22 @@ import pandas as pd
 from tqdm import tqdm
 from joblib import Parallel, delayed
 from memphis_traffic_analyzer.dmni import DMNI
-from .tools import get_scenarios
+from .tools import get_scenarios, sc_idx
 from .mapping import Mapping
 
 class Extractor:
-    def __init__(self, testcase, lower_bound, upper_bound, testcase_m=None, scenario=None):
+    def __init__(self, testcase, lower_bound, upper_bound, testcase_m=None, scenario=None, rtd_scens=None):
         if testcase is None:
             self.testcase = scenario
             self.scenarios = [scenario]
         else:
             self.testcase = testcase
-            self.scenarios = get_scenarios(testcase, lower_bound, upper_bound)
+            self.scenarios = get_scenarios(testcase, lower_bound, upper_bound, rtd_scens)
         
         if testcase_m is None:
             self.scenarios_m = None
         else:
-            self.scenarios_m = get_scenarios(testcase_m, lower_bound, upper_bound)
+            self.scenarios_m = get_scenarios(testcase_m, lower_bound, upper_bound, rtd_scens)
 
     def __get_dmni(scenario):
         tc_name = scenario.split("/")[-2]

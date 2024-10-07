@@ -20,10 +20,9 @@ class Slots:
     def __to_idx(self, x, y):
         return y*self._x + x
     
-    def remove(self, slots):
-        slots_idx = [self.__to_idx(slot[0], slot[1]) for slot in slots]
-        for idx in slots_idx:
-            self.slots.remove(idx)
+    def remove(self, slot):
+        slot_idx = self.__to_idx(slot[0], slot[1])
+        self.slots.remove(slot_idx)
 
     def to_xy(self, idx):
         return (int(idx % self.x), int(idx / self._x))
