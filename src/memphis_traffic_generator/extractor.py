@@ -6,9 +6,14 @@ from .tools import get_scenarios
 from .mapping import Mapping
 
 class Extractor:
-    def __init__(self, testcase, lower_bound, upper_bound, testcase_m=None):
-        self.testcase = testcase
-        self.scenarios = get_scenarios(testcase, lower_bound, upper_bound)
+    def __init__(self, testcase, lower_bound, upper_bound, testcase_m=None, scenario=None):
+        if testcase is None:
+            self.testcase = scenario
+            self.scenarios = [scenario]
+        else:
+            self.testcase = testcase
+            self.scenarios = get_scenarios(testcase, lower_bound, upper_bound)
+        
         if testcase_m is None:
             self.scenarios_m = None
         else:
@@ -19,7 +24,12 @@ class Extractor:
         malicious_tc = tc_name.endswith("_m") or tc_name.endswith("_bad")
         df = DMNI(scenario).df
         malicious_sc = scenario.endswith("_m")
-        df["scenario"]  = scenario.split("/")[-1].split("_")[1]
+        scen_name = scenario.split("/")[-1]
+        try:
+            scen_name = scen_name.split("_")[1]
+        except:
+            pass
+        df["scenario"] = scen_name
         df["malicious"] = malicious_sc or malicious_tc
         df.drop(df[df["app"] == 0].index, inplace=True)
         if malicious_sc:
@@ -29,6 +39,7 @@ class Extractor:
         df["hops"] = [Mapping.distance(mapping[df.loc[i, "prod"]], mapping[df.loc[i, "cons"]]) for i in df.index]
         df.loc[0, "rel_timestamp"] = 0
         df.loc[1:, "rel_timestamp"] = df.loc[1:, "timestamp"] - df.loc[0, "timestamp"]
+        df['rel_timestamp'] = df['rel_timestamp'].astype('int')
         return df
 
     def extract(self, output):
