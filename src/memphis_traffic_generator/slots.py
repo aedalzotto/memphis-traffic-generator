@@ -1,20 +1,12 @@
+from math import sqrt
+
 class Slots:
-    def __init__(self, x, y, rem_top_diag=False, ht=False):
-        self._x = x
-        self._y = y
+    def __init__(self, minimum):
+        size = [(minimum // i, i) for i in range(1, int(sqrt(minimum)) + 1) if minimum % i == 0][-1]
+        self._x = size[0]
+        self._y = size[1]
 
-        self.slots = [*range(0, x*y)]
-
-        if rem_top_diag:
-            top_diag = [i for i in self.slots if Slots.to_y(i, x) > Slots.to_x(i, x)]
-            for i in top_diag:
-                self.slots.remove(i)
-        else:
-            self.slots.remove(x*(y-1)) # Remove mapper
-        
-        if not ht:
-            self.slots.remove(0)       # Remove prod
-            self.slots.remove(x*y - 1) # Remove cons
+        self.slots = [*range(0, self._x*self._y)]
 
     def __len__(self):
         return len(self.slots)
@@ -25,6 +17,17 @@ class Slots:
     def __iter__(self):
         return iter(self.slots)
     
+    def __to_idx(self, x, y):
+        return y*self._x + x
+    
+    def remove(self, slots):
+        slots_idx = [self.__to_idx(slot[0], slot[1]) for slot in slots]
+        for idx in slots_idx:
+            self.slots.remove(idx)
+
+    def to_xy(self, idx):
+        return (int(idx % self.x), int(idx / self._x))
+
     @property
     def x(self):
         return self._x
@@ -32,9 +35,3 @@ class Slots:
     @property
     def y(self):
         return self._y
-
-    def to_x(i, x):
-        return int(i % x)
-    
-    def to_y(i, x):
-        return int(i / x)
