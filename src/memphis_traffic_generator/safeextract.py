@@ -11,6 +11,7 @@ class SafeExtract:
         self.extractor = Extractor(ntc, None, None, mtc, rtd_scens=self.scen_idx)
 
     def extract(self):
+        df_lat = DataFrame(columns=['scenario', 'n_inf', 'avg_latency'])
         df_inf = DataFrame(columns=['scenario', 'index', 'rel_timestamp', 'prod', 'cons', 'det_latency'])
         df_end = DataFrame(columns=['scenario', 'malicious', 'beggining', 'end'])
         for scenario in self.scen_idx:
@@ -52,7 +53,22 @@ class SafeExtract:
                                 ignore_index=True
                             )
                         elif tokens[0] == "IT":
-                            inferences.append((tokens[1], tokens[2]))
+                            df_lat = concat(
+                                [
+                                    DataFrame(
+                                        [
+                                            [
+                                                scenario,
+                                                int(tokens[1]),
+                                                int(tokens[2])
+                                            ]
+                                        ], 
+                                        columns=df_lat.columns
+                                    ), 
+                                    df_lat
+                                ], 
+                                ignore_index=True
+                            )
 
             with open("{}/log/log{}x{}.txt".format(path_m, mapper[0], mapper[1]), "r") as f:
                 beggining = 0
@@ -112,6 +128,7 @@ class SafeExtract:
                     ignore_index=True
                 )
 
+        df_lat.to_csv("{}_lat.csv".format(self.ntc[3:]), index=False)
         df_inf.to_csv("{}_inf.csv".format(self.ntc[3:]), index=False)
         df_end.to_csv("{}_end.csv".format(self.ntc[3:]), index=False)
 
