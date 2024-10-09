@@ -13,9 +13,10 @@ class SafeExtract:
     def extract(self):
         df_lat = DataFrame(columns=['scenario', 'n_inf', 'avg_latency'])
         df_inf = DataFrame(columns=['scenario', 'index', 'rel_timestamp', 'prod', 'cons', 'det_latency'])
-        df_end = DataFrame(columns=['scenario', 'malicious', 'beggining', 'end'])
+        df_end = DataFrame(columns=['scenario', 'rtd', 'beggining', 'end'])
         for scenario in self.scen_idx:
             path_n = "{}/rtd_{}".format(self.ntc, scenario)
+            scen_n = "{}/sc_{}".format(self.ntc, scenario)
             path_m = "{}_m/rtd_{}".format(self.ntc, scenario)
             
             with open("{}/rtd_{}.yaml".format(path_m, scenario), "r") as f:
@@ -70,7 +71,7 @@ class SafeExtract:
                                 ignore_index=True
                             )
 
-            with open("{}/log/log{}x{}.txt".format(path_m, mapper[0], mapper[1]), "r") as f:
+            with open("{}/log/log{}x{}.txt".format(path_n, mapper[0], mapper[1]), "r") as f:
                 beggining = 0
                 end = 0
                 for line in f:
@@ -99,7 +100,7 @@ class SafeExtract:
                     ignore_index=True
                 )
 
-            with open("{}/log/log{}x{}.txt".format(path_n, mapper[0], mapper[1]), "r") as f:
+            with open("{}/log/log{}x{}.txt".format(scen_n, mapper[0], mapper[1]), "r") as f:
                 beggining = 0
                 end = 0
                 for line in f:
