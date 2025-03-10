@@ -14,7 +14,7 @@ class SafeExtract:
 
     def extract(self):
         df_lat = DataFrame(columns=['scenario', 'n_inf', 'avg_latency'])
-        df_inf = DataFrame(columns=['scenario', 'index', 'rel_timestamp', 'prod', 'cons', 'det_latency'])
+        df_inf = DataFrame(columns=['scenario', 'rel_timestamp', 'prod', 'cons', 'det_latency', 'anomaly'])
         df_end = DataFrame(columns=['scenario', 'rtd', 'beggining', 'end'])
 
         with yaspin(text="Extracting simulation data...") as spinner:
@@ -37,27 +37,7 @@ class SafeExtract:
                         if line[0] == "$":
                             line = line.split("_")[-1]
                             tokens = line.split("\t")
-                            if tokens[0] == "AD":
-                                df_inf = concat(
-                                    [
-                                        DataFrame(
-                                            [
-                                                [
-                                                    scenario,
-                                                    int(tokens[1]),
-                                                    int(tokens[2]), 
-                                                    int(tokens[3]), 
-                                                    int(tokens[4]),
-                                                    int(tokens[5])
-                                                ]
-                                            ], 
-                                            columns=df_inf.columns
-                                        ), 
-                                        df_inf
-                                    ], 
-                                    ignore_index=True
-                                )
-                            elif tokens[0] == "IT":
+                            if tokens[0] == "IT":
                                 df_lat = concat(
                                     [
                                         DataFrame(
@@ -74,6 +54,29 @@ class SafeExtract:
                                     ], 
                                     ignore_index=True
                                 )
+
+                with open("{}/debug/safe/{}x{}.txt".format(path_m, safe[0], safe[1]), "r") as f:
+                    for line in f:
+                        tokens = line.split(",")
+                        df_inf = concat(
+                            [
+                                DataFrame(
+                                    [
+                                        [
+                                            scenario,
+                                            int(tokens[0]),
+                                            int(tokens[1]), 
+                                            int(tokens[2]), 
+                                            int(tokens[3]),
+                                            int(tokens[4])
+                                        ]
+                                    ], 
+                                    columns=df_inf.columns
+                                ), 
+                                df_inf
+                            ], 
+                            ignore_index=True
+                        )
 
                 with open("{}/log/log{}x{}.txt".format(path_n, mapper[0], mapper[1]), "r") as f:
                     beggining = 0
