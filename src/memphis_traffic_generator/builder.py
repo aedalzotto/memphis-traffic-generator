@@ -38,4 +38,4 @@ class Builder:
 
     def __build_scenario(testcase, scenario):
         if run(["memphi5", "scenario", testcase, scenario], stdout=DEVNULL).returncode != 0:
-            raise Exception("Error building scenario")
+            raise Exception("Error building scenario {}/{}".format(testcase, scenario))
