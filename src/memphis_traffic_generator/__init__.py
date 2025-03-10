@@ -24,6 +24,7 @@ def memphis_tg():
     gen_ht_parser.add_argument("-o", "--output", help="Path to output base folder", default=".")
     gen_ht_parser.add_argument("-m", "--with-management", help="Add ODA detection tasks", action="store_true", default=False)
     gen_ht_parser.add_argument("-r", "--with-rtd", help="Add real-time detection scenarios", action="store_true", default=False)
+    gen_ht_parser.add_argument("-s", "--size", help="Manually adjust size. E.g. 4 4 for 4x4", nargs=2, default=None)
 
     build_parser = subparsers.add_parser("build", help="Build scenarios")
     build_parser.add_argument("TESTCASE", help="Testcase file")
@@ -80,7 +81,7 @@ def memphis_tg():
         if args.option == "generate-app":
             generator = Generator(MEMPHIS_V_PATH, args.APPLICATION, mal_msg_size=args.msize)
         else:
-            generator = Generator(MEMPHIS_V_PATH, args.APPLICATION, trojan=True, oda=args.with_management, with_rtd=args.with_rtd)
+            generator = Generator(MEMPHIS_V_PATH, args.APPLICATION, trojan=True, oda=args.with_management, with_rtd=args.with_rtd, square_size=args.size)
         generator.write(args.output)
     elif args.option == "build":
         builder = Builder(args.TESTCASE, args.APPLICATIONS, args.SCENARIOS)

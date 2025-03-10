@@ -7,12 +7,15 @@ from .testcase import Testcase
 from .scenario import Scenario
 
 class Generator:
-    def __init__(self, platform_path, app, trojan=False, oda=False, with_rtd=False, mal_msg_size=None):
+    def __init__(self, platform_path, app, trojan=False, oda=False, with_rtd=False, mal_msg_size=None, mc_size=None):
         self._trojan = trojan
         self.app = Application(platform_path, app, trojan, mal_msg_size)
 
         overhead = (1 if trojan else 3) + (2 if oda else 0)
-        slots = Slots(len(self.app) + overhead)
+        if mc_size is None:
+            slots = Slots(len(self.app) + overhead)
+        else:
+            slots = Slots(int(mc_size[0]) * int(mc_size[1]))
 
         management = [("mapper_task", (slots.x-1, slots.y-1))]
         if oda:
