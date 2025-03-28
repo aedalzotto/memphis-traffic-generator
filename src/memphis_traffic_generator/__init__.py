@@ -60,6 +60,7 @@ def memphis_tg():
     ext_ht_parser.add_argument("-o", "--output", help="Output file", default=None)
     ext_ht_parser.add_argument("-l", "--lower",  help="Lower bound", default=None)
     ext_ht_parser.add_argument("-u", "--upper",  help="Upper bound", default=None)
+    ext_ht_parser.add_argument("-a", "--appid",  help="Application ID to extract", default=None)
 
     ext_rtd_parser = subparsers.add_parser("extract-rtd", help="Extract dataset from RT anomaly detection")
     ext_rtd_parser.add_argument("NORMAL_TC", help="Normal testcase path")
@@ -99,7 +100,7 @@ def memphis_tg():
         extractor = Extractor(args.TESTCASE, args.lower, args.upper)
         extractor.extract(args.output)
     elif args.option == "extract-ht":
-        extractor = Extractor(args.TESTCASE, args.lower, args.upper, args.TESTCASE_M)
+        extractor = Extractor(args.TESTCASE, args.lower, args.upper, args.TESTCASE_M, appid=args.appid)
         extractor.extract(args.output)
     elif args.option == "extract-rtd":
         rtd = SafeExtract(args.NORMAL_TC, args.MALICIOUS_TC, args.TEST_DATASET)
