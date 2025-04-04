@@ -48,7 +48,7 @@ class Generator:
 
         seed(7)
         train_mappings = sample(mappings, train_len)
-        test_mappings  = [m for m in mappings if m not in train_mappings]
+        test_mappings  = list(set(mappings) - set(train_mappings))
 
         self.train_scenarios = [
             Scenario(self.app, p, [management[0]])
