@@ -1,7 +1,7 @@
 from .descriptor import Descriptor
 
 class Testcase(Descriptor):
-    def __init__(self, slots, management=[], mal=False):
+    def __init__(self, slots, ht=False):
         super().__init__()
         self._content += "hw:\n"
         self._content += "  page_size_inst_KB: 64\n"
@@ -15,12 +15,10 @@ class Testcase(Descriptor):
         self._content += "    - name: MA_INJ\n"
         self._content += "      pe: 0,{}\n".format(slots.y - 1)
         self._content += "      port: N\n"
-        if mal:
+        if ht:
             self._content += "  links:\n"
             for ix in range(slots.x):
                 for iy in range(slots.y):
-                    if (ix, iy) in management:
-                        continue
                     for ip in ['E', 'W', 'N', 'S']:
                         if ix == 0 and ip == 'W':
                             continue
@@ -34,4 +32,8 @@ class Testcase(Descriptor):
                         self._content += "      port: {}\n".format(ip)
                         self._content += "      trojan: rs\n"
         self._content += "  parameters:\n"
+        # self._content += "    - TRAFFIC_DEBUG: no\n"
+        # self._content += "    - UART_DEBUG: no\n"
+        # self._content += "    - SCHED_DEBUG: no\n"
+        # self._content += "    - PIPE_DEBUG: no\n"
         self._content += "    - DMNI_DEBUG: yes\n"
