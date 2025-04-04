@@ -75,8 +75,6 @@ class Extractor:
                 df.loc[line, "inf_lat"] = row["inf_lat"]
                 df.loc[line, "det_lat"] = row["inf_time"] - df.loc[line, "ht_time"]
 
-        df.drop(["app"], axis=1, inplace=True)
-
         return df
 
     def __get_ht(scenario):
