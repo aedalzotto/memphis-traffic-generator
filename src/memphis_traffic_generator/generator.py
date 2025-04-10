@@ -23,18 +23,17 @@ class Generator:
         if rtd:
             # map the observing task at center
             obs_map = (int(self.slots.x / 2), int(self.slots.y / 2))
-            # @todo check if colliding with mapper_task
+            # @todo check if colliding with mapper_task (unlikely)
             
             # map the decision task right next to observing
-            if obs_map[1] + 1 < self.slots.y:
+            if obs_map[0] + 1 < self.slots.x and not (obs_map[0]+1 == self.slots.x-1 and obs_map[1] == self.slots.y-1):
+                dec_map = (obs_map[0] + 1, obs_map[1])
+            elif obs_map[1] + 1 < self.slots.y and not (obs_map[0] == self.slots.x-1 and obs_map[1]+1 == self.slots.y-1):
                 dec_map = (obs_map[0], obs_map[1] + 1)
             elif obs_map[1] - 1 >= 0:
                 dec_map = (obs_map[0], obs_map[1] - 1)
-            elif obs_map[0] + 1 < self.slots.x:
-                dec_map = (obs_map[0] + 1, obs_map[1])
             else:
                 dec_map = (obs_map[0] - 1, obs_map[1])
-            # @todo check if colliding with mapper_task
 
             management.append(("safe-monitor", obs_map))
             management.append(("safe-{}".format(app), dec_map))
