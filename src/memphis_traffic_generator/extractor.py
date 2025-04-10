@@ -42,7 +42,7 @@ class Extractor:
         df["scenario"] = scen_name
         
         df.loc[0,  "rel_time"] = 0
-        df.loc[1:, "rel_time"] = df.loc[1:, "snd_time"] - df.loc[0, "snd_time"]
+        df.loc[1:, "rel_time"] = (df.loc[1:, "snd_time"] - df.loc[0, "snd_time"]) / 100
         df['rel_time'] = df['rel_time'].astype('int')
 
         mapping = Mapping(scenario)
@@ -64,6 +64,8 @@ class Extractor:
                 df.loc[line, "mal_cycles"] = row["cycles"]
 
         if rtd:
+            df["lat_mon"] = 0
+            df["lat_pred"] = 0
             df["mal_pred"] = False
             df["inf_lat"] = 0
             df["det_lat"] = 0
@@ -71,6 +73,8 @@ class Extractor:
                 line = Extractor.__msg_idx(df, row)
                 if line is None:
                     pass
+                df.loc[line, "lat_mon"] = row["lat_mon"]
+                df.loc[line, "lat_pred"] = row["lat_pred"]
                 df.loc[line, "mal_pred"] = True
                 df.loc[line, "inf_lat"] = row["inf_lat"]
                 df.loc[line, "det_lat"] = row["inf_time"] - df.loc[line, "ht_time"]
