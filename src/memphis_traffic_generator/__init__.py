@@ -15,6 +15,7 @@ def memphis_tg():
     gen_ht_parser.add_argument("APPLICATION", help="Application name to generate")
     gen_ht_parser.add_argument("-p", "--proportion", help="Percentage of baseline mappings", nargs=1, default=0.75)
     gen_ht_parser.add_argument("-r", "--rtd", help="Add real-time detection tasks for HT scenarios", action="store_true", default=False)
+    gen_ht_parser.add_argument("-f", "--fp-rtd", help="Add real-time detection tasks for HT scenarios with floating-point", action="store_true", default=False)
     gen_ht_parser.add_argument("-o", "--output", help="Path to output base folder", default=".")
     gen_ht_parser.add_argument("-s", "--size", help="Manually adjust size. E.g. 4 4 for 4x4", nargs=2, default=None)
 
@@ -41,7 +42,7 @@ def memphis_tg():
         MEMPHIS_V_PATH = getenv(ENV_MEMPHIS_V_PATH)
         if MEMPHIS_V_PATH is None:
             raise ValueError("Environment variable {} not set".format(ENV_MEMPHIS_V_PATH))
-        generator = Generator(MEMPHIS_V_PATH, args.APPLICATION, args.proportion, args.rtd, mc_size=args.size)
+        generator = Generator(MEMPHIS_V_PATH, args.APPLICATION, args.proportion, args.rtd, mc_size=args.size, fp_rtd=args.fp_rtd)
         generator.write(args.output)
     elif args.option == "build":
         builder = Builder(args.TESTCASE, args.APPLICATIONS, args.SCENARIOS, args.no_base, args.with_rtd)

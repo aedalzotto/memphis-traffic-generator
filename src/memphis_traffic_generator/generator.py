@@ -8,10 +8,10 @@ from .scenario import Scenario
 from random import sample, seed
 
 class Generator:
-    def __init__(self, platform_path, app, proportion, rtd, mc_size=None):
+    def __init__(self, platform_path, app, proportion, rtd, mc_size=None, fp_rtd=False):
         self.app = Application(platform_path, app)
 
-        overhead = (3 if rtd else 1)
+        overhead = (3 if (rtd or fp_rtd) else 1)
         if mc_size is None:
             self.slots = Slots(len(self.app) + overhead)
         else:
@@ -20,7 +20,7 @@ class Generator:
         self.tc = Testcase(self.slots, ht=True)
 
         management = [("mapper_task", (self.slots.x-1, self.slots.y-1))]
-        if rtd:
+        if rtd or fp_rtd:
             # map the observing task at center
             obs_map = (int(self.slots.x / 2), int(self.slots.y / 2))
             # @todo check if colliding with mapper_task (unlikely)
@@ -36,7 +36,7 @@ class Generator:
                 dec_map = (obs_map[0] - 1, obs_map[1])
 
             management.append(("safe-monitor", obs_map))
-            management.append(("safe-{}".format(app), dec_map))
+            management.append(("safe-{}{}".format(app, "_fp" if fp_rtd else ""), dec_map))
 
         for oda in management:
             self.slots.remove(oda[1])
@@ -59,7 +59,7 @@ class Generator:
             for p in test_mappings
         ]
 
-        if rtd:
+        if rtd or fp_rtd:
             self.rtd_scenarios = [
                 Scenario(self.app, p, management, ht=True)
                 for p in test_mappings
