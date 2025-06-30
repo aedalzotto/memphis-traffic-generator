@@ -12,6 +12,7 @@ class Scenario(Descriptor):
 
         self._content     += "apps:\n"
         self._content     += "  - name: {}\n".format(app.name)
+        # self._content     += "    start_time_ms: 5\n"
         self._content     += "    static_mapping:\n"
         for i, task in enumerate(app.tasks):
             self._content += "      {}: [{},{}]\n".format(task, mapping[i][0], mapping[i][1])
