@@ -5,6 +5,7 @@ from memphis_traffic_analyzer.dmni import DMNI
 from .tools import get_scenarios
 from .mapping import Mapping
 from os import listdir
+from numpy import int32
 
 class Extractor:
     def __init__(self, testcase, no_base, with_rtd, appid=None):
@@ -42,7 +43,7 @@ class Extractor:
         df["scenario"] = scen_name
         
         df.loc[0,  "rel_time"] = 0
-        df.loc[1:, "rel_time"] = (df.loc[1:, "snd_time"] - df.loc[0, "snd_time"]) / 100
+        df.loc[1:, "rel_time"] = int32((df.loc[1:, "snd_time"] - df.loc[0, "snd_time"]) / 100)
         df['rel_time'] = df['rel_time'].astype('int')
 
         mapping = Mapping(scenario)
