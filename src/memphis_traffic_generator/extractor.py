@@ -41,6 +41,20 @@ class Extractor:
                             continue
                     
                         return int(text[3])
+    
+    def __get_start(mapping, scenario):
+        id = 1
+        # print("{}/log/log{}x{}.txt".format(scenario, mapping.management["mapper_task"][0], mapping.management["mapper_task"][1]), 'r')
+        with open("{}/log/log{}x{}.txt".format(scenario, mapping.management["mapper_task"][0], mapping.management["mapper_task"][1]), 'r') as f:
+            for line in f:
+                tks = line.split("_")
+                if len(tks) >= 5 and tks[0] == "$$$":
+                    text = tks[4].split(" ")
+                    if text[0] == "App" and text[2] == "started":
+                        if int(text[1]) != id:
+                            continue
+                    
+                        return int(text[4])
 
     def __get_dmni(scenario, appid, malicious=False, rtd=False):
         if malicious:
@@ -57,11 +71,11 @@ class Extractor:
             pass
         df["scenario"] = scen_name
         
-        df.loc[0,  "rel_time"] = 0
-        df.loc[1:, "rel_time"] = int32((df.loc[1:, "snd_time"] - df.loc[0, "snd_time"]) / 100)
-        df['rel_time'] = df['rel_time'].astype('int')
-
         mapping = Mapping(scenario)
+        start = Extractor.__get_start(mapping, scenario)
+        df.loc[:, "rel_time"] = int32((df.loc[:, "snd_time"] - start) / 100)
+        df['rel_time'] = df['rel_time'].astype('int')
+        
         df["hops"] = [Mapping.distance(mapping[df.loc[i, "app"]][df.loc[i, "prod"]], mapping[df.loc[i, "app"]][df.loc[i, "cons"]]) for i in df.index]
         # score = Extractor.__get_mapping_score(mapping, scenario)
         # df["mapping_score"] = [score] * df.shape[0]
