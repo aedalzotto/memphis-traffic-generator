@@ -8,12 +8,12 @@ from os import listdir
 from numpy import int32
 
 class Extractor:
-    def __init__(self, testcase, no_base, with_rtd, appid=None):
+    def __init__(self, testcase, no_base, with_ht, with_mapp, appid=None):
         self.testcase = testcase
-        train_test = get_scenarios(testcase, no_base, False)
-        self.train = list(filter(lambda scenario: not scenario.endswith("_m"), train_test))
+        train_test = get_scenarios(testcase, no_base, False, False)
+        self.train = list(filter(lambda scenario: not (scenario.endswith("_m")), train_test))
         self.test  = list(filter(lambda scenario: scenario.endswith("_m"), train_test))
-        self.rtd   = get_scenarios(testcase, True, with_rtd)
+        self.rtd   = get_scenarios(testcase, True, with_ht, False)
         self.appid = appid
 
     def __msg_idx(df, row):
@@ -26,6 +26,21 @@ class Extractor:
         if df.iloc[line].shape[0] != 1:
             raise Exception("Could not match HT to message")
         return line
+    
+    def __get_mapping_score(mapping, scenario):
+        id = 0
+        # print("{}/log/log{}x{}.txt".format(scenario, mapping.management["mapper_task"][0], mapping.management["mapper_task"][1]), 'r')
+        with open("{}/log/log{}x{}.txt".format(scenario, mapping.management["mapper_task"][0], mapping.management["mapper_task"][1]), 'r') as f:
+            for line in f:
+                tks = line.split("_")
+                if len(tks) >= 5 and tks[0] == "$$$":
+                    text = tks[4].split(" ")
+                    if text[0] == "Mapped":
+                        if id == 0:
+                            id += 1
+                            continue
+                    
+                        return int(text[3])
 
     def __get_dmni(scenario, appid, malicious=False, rtd=False):
         if malicious:
@@ -48,6 +63,8 @@ class Extractor:
 
         mapping = Mapping(scenario)
         df["hops"] = [Mapping.distance(mapping[df.loc[i, "app"]][df.loc[i, "prod"]], mapping[df.loc[i, "app"]][df.loc[i, "cons"]]) for i in df.index]
+        # score = Extractor.__get_mapping_score(mapping, scenario)
+        # df["mapping_score"] = [score] * df.shape[0]
 
         if appid is not None:
             df.drop(df[df["app"] != int(appid)].index, inplace=True)
@@ -104,7 +121,7 @@ class Extractor:
             train_df = pd.concat(train_dmnis, ignore_index=True)
             train_df.to_csv("{}_train.csv".format(self.testcase[3:]), index=False)
 
-            print("Extracting DMNI logs from test scenario...")
+            print("Extracting DMNI logs from malicious scenario...")
             test_dmnis = Parallel(n_jobs=-1)(delayed(Extractor.__get_dmni)(
                 scenario, 
                 self.appid, 

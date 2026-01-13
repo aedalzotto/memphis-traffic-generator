@@ -5,8 +5,8 @@ from time import perf_counter
 from .tools import get_scenarios
 
 class Simulator:
-    def __init__(self, testcase, no_base, with_rtd):
-        self.scenarios = get_scenarios(testcase, no_base, with_rtd)
+    def __init__(self, testcase, no_base, with_ht, with_mapp):
+        self.scenarios = get_scenarios(testcase, no_base, with_ht, with_mapp)
 
     def simulate(self):
         print("Simulating...")

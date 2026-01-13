@@ -13,6 +13,7 @@ class Application(Descriptor):
 
         super().__init__()
         self._content += "apps:\n"
+        self._content += "  - name: malicious_rand\n"
         self._content += "  - name: {}\n".format(name)
 
     @property

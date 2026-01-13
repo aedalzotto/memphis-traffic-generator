@@ -5,22 +5,25 @@ from yaspin import yaspin
 from joblib import Parallel, delayed
 
 class Builder:
-    def __init__(self, testcase, apps, scenarios, no_base, with_rtd):
+    def __init__(self, testcase, apps, scenarios, no_base, with_ht, with_mapp):
         self.name      = scenarios
         self.testcase  = testcase
         self.apps      = apps
         self.scenarios = ["{}/{}".format(scenarios, scenario) for scenario in listdir(scenarios)]
         
         if no_base:
-            self.scenarios = list(filter(lambda scenario: scenario.endswith("_rtd.yaml"), self.scenarios))
+            self.scenarios = list(filter(lambda scenario: (scenario.endswith("_ht.yaml") or scenario.endswith("_mapp.yaml")), self.scenarios))
 
-        if not with_rtd:
-            self.scenarios = list(filter(lambda scenario: not scenario.endswith("_rtd.yaml"), self.scenarios))
+        if not with_ht:
+            self.scenarios = list(filter(lambda scenario: not scenario.endswith("_ht.yaml"), self.scenarios))
+
+        if not with_mapp:
+            self.scenarios = list(filter(lambda scenario: not scenario.endswith("_mapp.yaml"), self.scenarios))
 
     def __build_tc(self):
         with yaspin(text="Building testcase...") as spinner:
             with open("{}.log".format(self.name), "w") as log:
-                if run(["memphi5", "testcase", self.testcase, "--skipdebug"], stdout=log, stderr=log).returncode != 0:
+                if run(["memphi5", "testcase", self.testcase], stdout=log, stderr=log).returncode != 0:
                     raise Exception("Error building testcase. Check log for more information.")
             spinner.ok()
 
@@ -40,5 +43,5 @@ class Builder:
         print("Built to {}".format(self.testcase[:-5]))
 
     def __build_scenario(testcase, scenario):
-        if run(["memphi5", "scenario", testcase, scenario, "--skipdebug"], stdout=DEVNULL).returncode != 0:
+        if run(["memphi5", "scenario", testcase, scenario], stdout=DEVNULL).returncode != 0:
             raise Exception("Error building scenario {}/{}".format(testcase, scenario))

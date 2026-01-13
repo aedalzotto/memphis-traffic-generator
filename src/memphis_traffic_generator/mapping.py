@@ -5,6 +5,11 @@ class Mapping:
     def __init__(self, scenario):
         yaml = safe_load(open("{}/{}.yaml".format(scenario, scenario.split('/')[-1]), 'r'))
         apps = yaml["apps"]
+        mgmt = yaml["management"]
+
+        self.management = {}
+        for task in mgmt:
+            self.management[task["task"]] = (task["static_mapping"][0], task["static_mapping"][1])
 
         self._tasks = {}
         for idx, app in enumerate(apps):
