@@ -15,8 +15,8 @@ class Scenario(Descriptor):
         if mapp is not None:
             self._content     += "  - name: malicious_rand\n"
             self._content     += "    static_mapping:\n"
-            self._content     += "      prod: [{},{}]\n".format(mapp[0][0], mapp[0][1])
-            self._content     += "      cons: [{},{}]\n".format(mapp[1][0], mapp[1][1])
+            self._content     += "      producer: [{},{}]\n".format(mapp[0][0], mapp[0][1])
+            self._content     += "      consumer: [{},{}]\n".format(mapp[1][0], mapp[1][1])
 
         self._content     += "  - name: {}\n".format(app.name)
         # self._content     += "    start_time_ms: 5\n"
