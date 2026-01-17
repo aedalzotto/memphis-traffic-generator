@@ -3,22 +3,16 @@ from os import listdir
 from tqdm import tqdm
 from yaspin import yaspin
 from joblib import Parallel, delayed
+from .tools import get_scenarios
 
 class Builder:
-    def __init__(self, testcase, apps, scenarios, no_base, with_ht, with_mapp):
+    def __init__(self, testcase, apps, scenarios, with_base, with_test, with_ht, with_mapp, with_fp):
         self.name      = scenarios
         self.testcase  = testcase
         self.apps      = apps
-        self.scenarios = ["{}/{}".format(scenarios, scenario) for scenario in listdir(scenarios)]
-        
-        if no_base:
-            self.scenarios = list(filter(lambda scenario: (scenario.endswith("_ht.yaml") or scenario.endswith("_mapp.yaml")), self.scenarios))
-
-        if not with_ht:
-            self.scenarios = list(filter(lambda scenario: not scenario.endswith("_ht.yaml"), self.scenarios))
-
-        if not with_mapp:
-            self.scenarios = list(filter(lambda scenario: not scenario.endswith("_mapp.yaml"), self.scenarios))
+        with yaspin(text="Listing scenarios...") as spinner:
+            self.scenarios = get_scenarios(scenarios, with_base, with_test, with_ht, with_mapp, with_fp, keep_yaml=True)
+            spinner.ok()
 
     def __build_tc(self):
         with yaspin(text="Building testcase...") as spinner:
