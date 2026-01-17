@@ -8,23 +8,37 @@ from .scenario import Scenario
 from random import sample, seed
 
 class Generator:
-    def __init__(self, platform_path, app, proportion, rtd, mc_size=None, fp_rtd=False, mal_app=False):
+    def __init__(self, platform_path, app, proportion, with_mapp=False, with_fp=False, starting_size=None):
+        self.with_mapp = with_mapp
         self.app = Application(platform_path, app)
 
-        overhead=3 #5
-        self.slots = Slots2((3,3), len(self.app) + overhead)
+        if starting_size is None:
+            starting_size = (3,3)
 
+        overhead = 3
+        if with_mapp:
+            overhead = 5
+        
+        self.slots = Slots2(starting_size, len(self.app) + overhead)
         self.tc = Testcase(self.slots, ht=True)
 
         management = [("mapper_task", (0, self.slots.y-1))] # Top-left
-        # mal_map = [(0, 0), (self.slots.x-1, self.slots.y-1)] # Bottom-left and top-right
         obs_map = (int(self.slots.x // 2), int(self.slots.y // 2))
         dec_map = (obs_map[0], obs_map[1] + 1)
         management.append(("safe-monitor", obs_map))
-        management.append(("safe-{}{}".format(app, "_fp" if fp_rtd else ""), dec_map))
+        management_fp = management.copy()
 
+        management.append(("safe-{}".format(app), dec_map))
+        management_fp.append(("safe-{}_fp".format(app), dec_map))
+
+        if with_mapp:
+            mal_map = [(0, 0), (self.slots.x-1, self.slots.y-1)] # Bottom-left and top-right
+            self.slots.remove(mal_map[0])
+            self.slots.remove(mal_map[1])
+        
         for oda in management:
             self.slots.remove(oda[1])
+        
         mappings = [tuple(self.slots.to_xy(i) for i in m) for m in list(permutations(self.slots, len(self.app)))]
 
         train_len = int(len(mappings)*proportion)
@@ -34,25 +48,48 @@ class Generator:
         train_mappings = sample(mappings, train_len)
         test_mappings  = list(set(mappings) - set(train_mappings))
 
+        # Train scenarios: no Mapp or HT, neither RTD of any type
         self.train_scenarios = [
             Scenario(self.app, p, [management[0]])
             for p in train_mappings
         ]
 
-        self.test_scenarios = [
+        # HT scenarios: HT-affected scenarios without RTD for app. exec. time increase computation
+        self.ht_scenarios = [
             Scenario(self.app, p, [management[0]], ht=True)
             for p in test_mappings
         ]
 
-        self.rtd_ht_scenarios = [
+        # HT-affected scenarios with RTD
+        self.ht_rtd_scenarios = [
             Scenario(self.app, p, management, ht=True)
             for p in test_mappings
         ]
-        # self.rtd_mapp_scenarios = [
-        #     Scenario(self.app, p, management, mapp=mal_map)
-        #     for p in test_mappings
-        # ]
 
+        self.with_fp = with_fp
+        if with_fp:
+            self.ht_rtd_fp_scenarios = [
+                Scenario(self.app, p, management_fp, ht=True)
+                for p in test_mappings
+            ]
+
+        if with_mapp:
+            # Mapp scenarios: Non-malicious scenarios WITH RTD for Mapp positive class labeling
+            self.rtd_scenarios = [
+                Scenario(self.app, p, management, ht=False)
+                for p in test_mappings
+            ]
+
+            self.mapp_rtd_scenarios = [
+                Scenario(self.app, p, management, ht=False, mapp=mal_map)
+                for p in test_mappings
+            ]
+
+            if with_fp:
+                self.mapp_rtd_fp_scenarios = [
+                    Scenario(self.app, p, management_fp, ht=False, mapp=mal_map)
+                    for p in test_mappings
+                ]
 
     def write(self, out_path):
         makedirs(out_path, exist_ok=True)
@@ -71,16 +108,32 @@ class Generator:
         for i, scenario in enumerate(tqdm(self.train_scenarios)):
             scenario.write("{}/{}/sc_{}.yaml".format(out_path, scen_name, i))
 
-        print("Generating malicious scenarios...")
-        for i, scenario in enumerate(tqdm(self.test_scenarios)):
-            scenario.write("{}/{}/sc_{}_m.yaml".format(out_path, scen_name, i+len(self.train_scenarios)))
+        print("Generating HT scenarios...")
+        for i, scenario in enumerate(tqdm(self.ht_scenarios)):
+            scenario.write("{}/{}/sc_{}_ht.yaml".format(out_path, scen_name, i+len(self.train_scenarios)))
 
-        print("Generating RTD HT scenarios...")
-        for i, scenario in enumerate(tqdm(self.rtd_ht_scenarios)):
-            scenario.write("{}/{}/sc_{}_rtd_ht.yaml".format(out_path, scen_name, i+len(self.train_scenarios)))
+        print("Generating HT RTD scenarios...")
+        for i, scenario in enumerate(tqdm(self.ht_rtd_scenarios)):
+            scenario.write("{}/{}/sc_{}_ht_rtd.yaml".format(out_path, scen_name, i+len(self.train_scenarios)))
 
-        # print("Generating RTD Mapp scenarios...")
-        # for i, scenario in enumerate(tqdm(self.rtd_mapp_scenarios)):
-        #     scenario.write("{}/{}/sc_{}_rtd_mapp.yaml".format(out_path, scen_name, i+len(self.train_scenarios)))
+        if self.with_fp:
+            print("Generating HT RTD FP scenarios...")
+            for i, scenario in enumerate(tqdm(self.ht_rtd_fp_scenarios)):
+                scenario.write("{}/{}/sc_{}_ht_rtd_fp.yaml".format(out_path, scen_name, i+len(self.train_scenarios)))
+
+        if self.with_mapp:
+            print("Generating RTD scenarios...")
+            for i, scenario in enumerate(tqdm(self.rtd_scenarios)):
+                scenario.write("{}/{}/sc_{}_normal_rtd.yaml".format(out_path, scen_name, i+len(self.train_scenarios)))
+
+            print("Generating Mapp RTD scenarios...")
+            for i, scenario in enumerate(tqdm(self.mapp_rtd_scenarios)):
+                scenario.write("{}/{}/sc_{}_mapp_rtd.yaml".format(out_path, scen_name, i+len(self.train_scenarios)))
+
+            if self.with_fp:
+                print("Generating Mapp RTD FP scenarios...")
+                for i, scenario in enumerate(tqdm(self.mapp_rtd_fp_scenarios)):
+                    scenario.write("{}/{}/sc_{}_mapp_rtd_fp.yaml".format(out_path, scen_name, i+len(self.train_scenarios)))
+
 
         print("Output written to {}/{{{}, {}, {}}}".format(out_path, scen_name, tc_name, app_name))
