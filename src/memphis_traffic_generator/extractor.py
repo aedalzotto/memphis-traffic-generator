@@ -8,13 +8,31 @@ from os import listdir
 from numpy import int32
 
 class Extractor:
-    def __init__(self, testcase, no_base, with_ht, with_mapp, appid=None):
+    def __init__(self, testcase, with_base, test_ht, test_rtd, with_ht, with_mapp, with_fp):
         self.testcase = testcase
-        train_test = get_scenarios(testcase, no_base, False, False)
-        self.train = list(filter(lambda scenario: not (scenario.endswith("_m")), train_test))
-        self.test  = list(filter(lambda scenario: scenario.endswith("_m"), train_test))
-        self.rtd   = get_scenarios(testcase, True, with_ht, False)
-        self.appid = appid
+
+        self.train = None
+        if with_base:
+            self.train = get_scenarios(testcase, with_base=True)
+
+        self.test_ht  = None
+        self.test_rtd = None
+        if test_ht or test_rtd:
+            test  = get_scenarios(testcase, with_test=True)
+            if test_ht:
+                self.test_ht  = list(filter(lambda scenario: scenario.endswith("_ht"), test))
+            if test_rtd:
+                self.test_rtd = list(filter(lambda scenario: scenario.endswith("_normal_rtd"), test))
+
+        self.ht = None
+        if with_ht:
+            self.ht = get_scenarios(testcase, with_ht=True, with_fp=with_fp)
+
+        self.mapp = None
+        if with_mapp:
+            self.mapp = get_scenarios(testcase, with_mapp=True, with_fp=with_fp)
+
+        self.with_fp = with_fp
 
     def __msg_idx(df, row):
         app = (row["prod"] >> 8)
@@ -82,6 +100,7 @@ class Extractor:
 
         if appid is not None:
             df.drop(df[df["app"] != int(appid)].index, inplace=True)
+            df.reset_index(drop=True, inplace=True)
 
         if malicious:
             df["ht_time"] = 0
@@ -109,7 +128,8 @@ class Extractor:
                 df.loc[line, "lat_pred"] = row["lat_pred"]
                 df.loc[line, "mal_pred"] = True
                 df.loc[line, "inf_lat"] = row["inf_lat"]
-                df.loc[line, "det_lat"] = row["inf_time"] - df.loc[line, "ht_time"]
+                if malicious:
+                    df.loc[line, "det_lat"] = row["inf_time"] - df.loc[line, "ht_time"]
 
         return df
 
@@ -126,36 +146,59 @@ class Extractor:
         return df
 
     def extract(self):
-        if len(self.train) > 0:
+        if self.train is not None:
             print("Extracting DMNI logs from training scenario...")
             train_dmnis = Parallel(n_jobs=-1)(delayed(Extractor.__get_dmni)(
                 scenario, 
-                self.appid
+                1
             ) for scenario in tqdm(self.train))
             train_df = pd.concat(train_dmnis, ignore_index=True)
             train_df.to_csv("{}_train.csv".format(self.testcase[3:]), index=False)
+            print("Dataset exported to {}_train.csv".format(self.testcase[3:]))
 
-            print("Extracting DMNI logs from malicious scenario...")
+        if self.test_ht is not None:
+            print("Extracting DMNI logs from HT scenario...")
             test_dmnis = Parallel(n_jobs=-1)(delayed(Extractor.__get_dmni)(
                 scenario, 
-                self.appid, 
+                1, 
                 True, 
                 False
-            ) for scenario in tqdm(self.test))
+            ) for scenario in tqdm(self.test_ht))
             test_df = pd.concat(test_dmnis, ignore_index=True)
-            test_df.to_csv("{}_test.csv".format(self.testcase[3:]), index=False)
+            test_df.to_csv("{}_test_ht.csv".format(self.testcase[3:]), index=False)
+            print("Dataset exported to {}_test_ht.csv".format(self.testcase[3:]))
 
-            print("Dataset exported to {}_{{train,test}}.csv".format(self.testcase[3:]))
+        if self.test_rtd is not None:
+            test_dmnis = Parallel(n_jobs=-1)(delayed(Extractor.__get_dmni)(
+                scenario, 
+                1, 
+                False, 
+                True
+            ) for scenario in tqdm(self.test_rtd))
+            test_df = pd.concat(test_dmnis, ignore_index=True)
+            test_df.to_csv("{}_test_rtd.csv".format(self.testcase[3:]), index=False)
+            print("Dataset exported to {}_test_rtd.csv".format(self.testcase[3:]))
 
-        if len(self.rtd) > 0:
-            print("Extracting DMNI logs from RTD scenario...")
+        if self.ht is not None:
+            print("Extracting DMNI logs from HT RTD scenario...")
             rtd_dmnis = Parallel(n_jobs=-1)(delayed(Extractor.__get_dmni)(
                 scenario, 
-                self.appid, 
+                1, 
                 True, 
                 True
-            ) for scenario in tqdm(self.rtd))
+            ) for scenario in tqdm(self.ht))
             test_df = pd.concat(rtd_dmnis, ignore_index=True)
-            test_df.to_csv("{}_rtd.csv".format(self.testcase[3:]), index=False)
+            test_df.to_csv("{}_rtd_ht{}.csv".format(self.testcase[3:], "_fp" if self.with_fp else ""), index=False)
+            print("Dataset exported to {}_rtd_ht{}.csv".format(self.testcase[3:], "_fp" if self.with_fp else ""))
 
-            print("Dataset exported to {}_rtd.csv".format(self.testcase[3:]))
+        if self.mapp is not None:
+            print("Extracting DMNI logs from MAPP RTD scenario...")
+            rtd_dmnis = Parallel(n_jobs=-1)(delayed(Extractor.__get_dmni)(
+                scenario, 
+                2, 
+                False, 
+                True
+            ) for scenario in tqdm(self.mapp))
+            test_df = pd.concat(rtd_dmnis, ignore_index=True)
+            test_df.to_csv("{}_rtd_mapp{}.csv".format(self.testcase[3:], "_fp" if self.with_fp else ""), index=False)
+            print("Dataset exported to {}_rtd_mapp{}.csv".format(self.testcase[3:], "_fp" if self.with_fp else ""))
