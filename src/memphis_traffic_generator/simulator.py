@@ -1,12 +1,15 @@
 from tqdm import tqdm
 from joblib import Parallel, delayed
 from subprocess import run
+from yaspin import yaspin
 from time import perf_counter
 from .tools import get_scenarios
 
 class Simulator:
-    def __init__(self, testcase, no_base, with_ht, with_mapp):
-        self.scenarios = get_scenarios(testcase, no_base, with_ht, with_mapp)
+    def __init__(self, testcase, with_base, with_test, with_ht, with_mapp, with_fp):
+        with yaspin(text="Listing scenarios...") as spinner:
+            self.scenarios = get_scenarios(testcase, with_base, with_test, with_ht, with_mapp, with_fp)
+            spinner.ok()
 
     def simulate(self):
         print("Simulating...")
